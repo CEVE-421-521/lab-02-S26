@@ -64,18 +64,24 @@ Run this block to install all required packages -- the first time may be slow wh
 
 ```{julia}
 #| output: false
-dir_name = dirname(@__FILE__)  # <1>
-using Pkg  # <2>
-Pkg.activate(dir_name)  # <3>
-if !isfile(joinpath(dir_name, "Manifest.toml"))  # <4>
-    Pkg.instantiate()  # <5>
+using Pkg
+try
+    # Activate the local project
+    Pkg.activate(@__DIR__)
+
+    # Check if Manifest exists, if not instantiate
+    if !isfile(joinpath(@__DIR__, "Manifest.toml"))
+        Pkg.instantiate()
+    else
+        # Try to resolve any inconsistencies
+        Pkg.resolve()
+    end
+catch e
+    @warn "Package environment setup failed, attempting recovery" exception=e
+    Pkg.activate(@__DIR__)
+    Pkg.instantiate()
 end
 ```
-1. Get the folder where this notebook lives
-2. Load Julia's package manager
-3. Activate this folder's project environment
-4. Check if packages have been installed yet
-5. If not, install all packages listed in Project.toml
 
 Now load the packages we'll use:
 
